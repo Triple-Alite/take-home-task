@@ -1,0 +1,15 @@
+meta {
+  name: List image metadata
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}/images
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerFirebaseIdToken}}
+}

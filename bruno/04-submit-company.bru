@@ -1,0 +1,23 @@
+meta {
+  name: Submit company (owner only)
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{baseUrl}}/company
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerFirebaseIdToken}}
+}
+
+body:json {
+  {
+    "name": "Northstar Labs",
+    "userCount": 24,
+    "productCount": 7
+  }
+}

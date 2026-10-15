@@ -1,0 +1,15 @@
+meta {
+  name: Current user (owner)
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/auth/me
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerFirebaseIdToken}}
+}
