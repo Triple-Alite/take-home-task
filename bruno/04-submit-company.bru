@@ -5,7 +5,7 @@ meta {
 }
 
 put {
-  url: {{baseUrl}}/company
+  url: {{baseUrl}}/company/me
   body: json
   auth: bearer
 }
@@ -16,8 +16,8 @@ auth:bearer {
 
 body:json {
   {
-    "name": "Northstar Labs",
-    "userCount": 24,
-    "productCount": 7
+    "companyName": "Northstar Labs",
+    "numberOfUsers": 20,
+    "numberOfProducts": 80
   }
 }

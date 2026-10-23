@@ -1,0 +1,6 @@
+{
+  "version": "1",
+  "name": "Company Collaboration Platform",
+  "type": "collection",
+  "ignore": ["node_modules", ".git"]
+}

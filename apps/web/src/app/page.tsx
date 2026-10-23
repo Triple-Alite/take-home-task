@@ -1,9 +1,11 @@
 'use client';
 
 import { FormEvent, useEffect, useState } from 'react';
+import Link from 'next/link';
 import { onAuthStateChanged, signInWithEmailAndPassword, signOut, User } from 'firebase/auth';
 import { getFirebaseAuth } from '@/lib/firebase';
 import { apiRequest, SessionProfile } from '@/lib/api';
+import { firebaseSignInErrorMessage } from '@/lib/firebase-auth-error';
 import { Workspace } from '@/components/Workspace';
 
 export default function HomePage() {
@@ -12,6 +14,7 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const auth = getFirebaseAuth();
@@ -42,8 +45,8 @@ export default function HomePage() {
     setError('');
     try {
       await signInWithEmailAndPassword(auth, email, password);
-    } catch {
-      setError('Sign-in failed. Check your email and password, then try again.');
+    } catch (caught) {
+      setError(firebaseSignInErrorMessage(caught));
     } finally {
       setBusy(false);
     }
@@ -55,7 +58,7 @@ export default function HomePage() {
   return (
     <main className="auth-shell">
       <section className="auth-art" aria-label="Company Desk">
-        <a className="brand brand-light" href="/" aria-label="Company Desk home"><span className="brand-mark">C</span><span>company<br />desk<span className="brand-period">.</span></span></a>
+        <Link className="brand brand-light" href="/" aria-label="Company Desk home"><span className="brand-mark">C</span><span>company<br />desk<span className="brand-period">.</span></span></Link>
         <div className="art-copy"><p className="eyebrow">A SMALLER DISTANCE BETWEEN TEAMS</p><h1>One company.<br /><em>Two perspectives.</em></h1><p>Shared information, private by design.</p></div>
         <div className="art-index"><span>01</span><span className="art-index-line" /><span>COLLABORATION WORKSPACE</span></div>
         <div className="art-stamp" aria-hidden="true">C<span>·</span>D</div>
@@ -67,7 +70,7 @@ export default function HomePage() {
           <p className="auth-intro">Sign in with your individual workspace account.</p>
           <form className="login-form" onSubmit={login}>
             <label className="field"><span>Email address</span><input type="email" autoComplete="username" required value={email} onChange={(event) => setEmail(event.target.value)} /></label>
-            <label className="field"><span>Password</span><input type="password" autoComplete="current-password" required value={password} onChange={(event) => setPassword(event.target.value)} /></label>
+            <label className="field"><span>Password</span><input type={showPassword ? 'text' : 'password'} autoComplete="current-password" required value={password} onChange={(event) => setPassword(event.target.value)} /><button type="button" className="password-toggle" aria-pressed={showPassword} onClick={() => setShowPassword((visible) => !visible)}>{showPassword ? 'Hide' : 'Show'}</button></label>
             {error && <p className="login-error" role="alert">{error}</p>}
             {!auth && <p className="config-note" role="status">Firebase sign-in is not configured. Add the required `NEXT_PUBLIC_FIREBASE_*` values to continue.</p>}
             <button className="primary-button login-button" type="submit" disabled={busy || !auth}>{busy ? 'Signing in…' : 'Sign in'}<span aria-hidden="true">→</span></button>

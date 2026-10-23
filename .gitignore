@@ -9,4 +9,12 @@ apps/web/.env.local
 apps/api/.env
 .data/
 *.log
+*.tsbuildinfo
+service-account*.json
+firebase-adminsdk-*.json
+.firebase/
+.vercel/
+.render/
+apps/web/.next/
+apps/api/dist/
 .DS_Store

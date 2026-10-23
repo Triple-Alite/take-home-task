@@ -10,7 +10,7 @@ export function PrivateImage({ image }: { image: CompanyImage }) {
   useEffect(() => {
     let active = true;
     let objectUrl: string | undefined;
-    void apiFile(`/images/${encodeURIComponent(image.id)}`)
+    void apiFile(`/company/me/images/${encodeURIComponent(image.id)}/access`)
       .then((response) => response.blob())
       .then((blob) => {
         if (!active) return;

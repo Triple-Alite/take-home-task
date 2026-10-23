@@ -15,15 +15,15 @@ import { UpdateCompanyDto } from './company.dto';
 export class CompanyController {
   constructor(private readonly companies: CompanyService) {}
 
-  @Get()
-  @Roles('owner', 'collaborator')
+  @Get('me')
+  @Roles('USER_A', 'USER_B')
   @ApiOperation({ summary: 'Read the latest company submission; owner and collaborator' })
-  latest() { return this.companies.getLatest(); }
+  latest(@CurrentUser() user: AuthenticatedUser) { return this.companies.getLatest(user); }
 
-  @Put()
-  @Roles('owner')
+  @Put('me')
+  @Roles('USER_A')
   @ApiOperation({ summary: 'Create or update company information; owner only' })
   submit(@CurrentUser() user: AuthenticatedUser, @Body() body: UpdateCompanyDto) {
-    return this.companies.submit(user.uid, body);
+    return this.companies.submit(user, body);
   }
 }

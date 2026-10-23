@@ -7,16 +7,39 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum UserRole {
+  USER_A
+  USER_B
+}
+
+model User {
+  id          String   @id @default(uuid()) @db.Uuid
+  firebaseUid String   @unique
+  email       String   @unique
+  role        UserRole
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  ownedCompany         Company? @relation("CompanyOwner")
+  collaboratingCompany Company? @relation("CompanyCollaborator")
+  uploadedImages       Image[]  @relation("ImageUploader")
+}
+
 model Company {
-  id           String   @id @default(cuid())
-  ownerUid     String   @unique
-  name         String
-  userCount    Int
-  productCount Int
-  percentage   Float
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  images       Image[]
+  id             String   @id @default(cuid())
+  ownerUid       String   @unique
+  ownerId        String?  @unique @db.Uuid
+  collaboratorId String?  @unique @db.Uuid
+  name           String
+  userCount      Int
+  productCount   Int
+  percentage     Decimal  @db.Decimal(5, 1)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  images         Image[]
+  owner          User?    @relation("CompanyOwner", fields: [ownerId], references: [id], onDelete: Restrict)
+  collaborator   User?    @relation("CompanyCollaborator", fields: [collaboratorId], references: [id], onDelete: Restrict)
 }
 
 model Image {
@@ -24,6 +47,8 @@ model Image {
   companyId    String
   company      Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
   uploadedBy   String
+  uploadedById String?  @db.Uuid
+  uploader     User?    @relation("ImageUploader", fields: [uploadedById], references: [id], onDelete: Restrict)
   objectKey    String   @unique
   originalName String
   mimeType     String
@@ -31,4 +56,5 @@ model Image {
   createdAt    DateTime @default(now())
 
   @@index([companyId, createdAt(sort: Desc)])
+  @@index([uploadedById])
 }

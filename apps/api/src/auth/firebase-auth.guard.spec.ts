@@ -12,19 +12,24 @@ function requestContext(authorization?: string): ExecutionContext {
 describe('FirebaseAuthGuard', () => {
   const firebaseAuth = {
     verifyIdToken: jest.fn(),
-    roleFor: jest.fn()
   } as unknown as FirebaseAuthService;
   const guard = new FirebaseAuthGuard(firebaseAuth);
 
   beforeEach(() => jest.clearAllMocks());
 
-  it('verifies the bearer token and attaches only the server-derived role', async () => {
-    jest.mocked(firebaseAuth.verifyIdToken).mockResolvedValue({ uid: 'owner-uid' });
-    jest.mocked(firebaseAuth.roleFor).mockReturnValue('owner');
+  it('verifies the bearer token and attaches the database-provisioned identity', async () => {
+    const identity = {
+      id: 'internal-user-id',
+      uid: 'owner-uid',
+      email: 'owner@example.test',
+      role: 'USER_A' as const,
+      isActive: true as const
+    };
+    jest.mocked(firebaseAuth.verifyIdToken).mockResolvedValue(identity);
     const context = requestContext('Bearer id-token');
     await expect(guard.canActivate(context)).resolves.toBe(true);
     expect(jest.mocked(firebaseAuth.verifyIdToken)).toHaveBeenCalledWith('id-token');
-    expect(context.switchToHttp().getRequest().user).toEqual({ uid: 'owner-uid', role: 'owner' });
+    expect(context.switchToHttp().getRequest().user).toEqual(identity);
   });
 
   it('rejects missing bearer credentials', async () => {
@@ -33,7 +38,7 @@ describe('FirebaseAuthGuard', () => {
   });
 
   it('rejects an invalid Firebase token', async () => {
-    jest.mocked(firebaseAuth.verifyIdToken).mockRejectedValue(new Error('invalid'));
+    jest.mocked(firebaseAuth.verifyIdToken).mockRejectedValue(new UnauthorizedException('invalid'));
     await expect(guard.canActivate(requestContext('Bearer bad-token'))).rejects.toBeInstanceOf(UnauthorizedException);
   });
 });

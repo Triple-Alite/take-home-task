@@ -1,0 +1,35 @@
+services:
+  - type: web
+    name: company-collaboration-api
+    runtime: node
+    plan: free
+    region: oregon
+    rootDir: apps/api
+    buildCommand: npm ci --workspaces=false && npm run db:generate && npm run build
+    startCommand: npm run start
+    healthCheckPath: /api/v1/health/live
+    envVars:
+      - key: NODE_VERSION
+        value: 20.19.0
+      - key: NODE_ENV
+        value: production
+      - key: STORAGE_PROVIDER
+        value: supabase
+      - key: DATABASE_URL
+        sync: false
+      - key: FIREBASE_PROJECT_ID
+        sync: false
+      - key: FIREBASE_SERVICE_ACCOUNT_JSON
+        sync: false
+      - key: APP_OWNER_UID
+        sync: false
+      - key: APP_COLLABORATOR_UID
+        sync: false
+      - key: WEB_ORIGIN
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: SUPABASE_STORAGE_BUCKET
+        value: private-images

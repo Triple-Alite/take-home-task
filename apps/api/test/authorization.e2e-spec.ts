@@ -10,20 +10,26 @@ import { CompanyController } from '../src/company/company.controller';
 import { CompanyService } from '../src/company/company.service';
 
 const company = {
-  id: 'company-1', ownerUid: 'owner-uid', name: 'Northstar Labs',
-  userCount: 24, productCount: 7, percentage: 29.2,
+  id: 'company-1', companyName: 'Northstar Labs',
+  numberOfUsers: 20, numberOfProducts: 80, percentage: 20,
   createdAt: new Date('2026-01-01T00:00:00.000Z'),
   updatedAt: new Date('2026-01-02T00:00:00.000Z')
 };
 
-const identities: Record<string, string> = { 'owner-token': 'owner-uid', 'collaborator-token': 'collaborator-uid' };
+const identities = {
+  'owner-token': {
+    id: 'owner-record-id', uid: 'owner-uid', email: 'owner@example.test', role: 'USER_A' as const, isActive: true
+  },
+  'collaborator-token': {
+    id: 'collaborator-record-id', uid: 'collaborator-uid', email: 'collaborator@example.test', role: 'USER_B' as const, isActive: true
+  }
+};
 const firebaseAuth = {
   verifyIdToken: jest.fn(async (token: string) => {
-    const uid = identities[token];
-    if (!uid) throw new UnauthorizedException();
-    return { uid };
-  }),
-  roleFor: jest.fn((uid: string) => uid === 'owner-uid' ? 'owner' as const : 'collaborator' as const)
+    const identity = identities[token as keyof typeof identities];
+    if (!identity) throw new UnauthorizedException();
+    return identity;
+  })
 };
 const companyService = {
   getLatest: jest.fn().mockResolvedValue(company),
@@ -34,8 +40,6 @@ describe('Company API authorization', () => {
   let app: INestApplication;
 
   beforeAll(async () => {
-    process.env.APP_OWNER_UID = 'owner-uid';
-    process.env.APP_COLLABORATOR_UID = 'collaborator-uid';
     const module = await Test.createTestingModule({
       controllers: [AuthController, CompanyController],
       providers: [
@@ -47,7 +51,7 @@ describe('Company API authorization', () => {
       ]
     }).compile();
     app = module.createNestApplication();
-    app.setGlobalPrefix('api');
+    app.setGlobalPrefix('api/v1');
     app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true, forbidNonWhitelisted: true }));
     await app.init();
   });
@@ -55,34 +59,34 @@ describe('Company API authorization', () => {
   afterAll(async () => app.close());
 
   it('requires a verified bearer token', async () => {
-    await request(app.getHttpServer()).get('/api/company').expect(401);
+    await request(app.getHttpServer()).get('/api/v1/company/me').expect(401);
   });
 
   it('allows the collaborator to read but not change company data', async () => {
-    await request(app.getHttpServer()).get('/api/company')
+    await request(app.getHttpServer()).get('/api/v1/company/me')
       .set('Authorization', 'Bearer collaborator-token')
       .expect(200)
-      .expect(({ body }) => expect(body.name).toBe('Northstar Labs'));
-    await request(app.getHttpServer()).put('/api/company')
+      .expect(({ body }) => expect(body.companyName).toBe('Northstar Labs'));
+    await request(app.getHttpServer()).put('/api/v1/company/me')
       .set('Authorization', 'Bearer collaborator-token')
-      .send({ name: 'Tampered', userCount: 2, productCount: 3 })
+      .send({ companyName: 'Tampered', numberOfUsers: 2, numberOfProducts: 3 })
       .expect(403);
   });
 
   it('allows the owner to submit validated company details', async () => {
-    await request(app.getHttpServer()).put('/api/company')
+    await request(app.getHttpServer()).put('/api/v1/company/me')
       .set('Authorization', 'Bearer owner-token')
-      .send({ name: 'Northstar Labs', userCount: 24, productCount: 7 })
+      .send({ companyName: 'Northstar Labs', numberOfUsers: 20, numberOfProducts: 80 })
       .expect(200);
-    expect(companyService.submit).toHaveBeenCalledWith('owner-uid', {
-      name: 'Northstar Labs', userCount: 24, productCount: 7
+    expect(companyService.submit).toHaveBeenCalledWith(identities['owner-token'], {
+      companyName: 'Northstar Labs', numberOfUsers: 20, numberOfProducts: 80
     });
   });
 
   it('rejects unknown fields rather than trusting a client-supplied role', async () => {
-    await request(app.getHttpServer()).put('/api/company')
+    await request(app.getHttpServer()).put('/api/v1/company/me')
       .set('Authorization', 'Bearer owner-token')
-      .send({ name: 'Northstar Labs', userCount: 24, productCount: 7, role: 'owner' })
+      .send({ companyName: 'Northstar Labs', numberOfUsers: 20, numberOfProducts: 80, role: 'USER_A' })
       .expect(400);
   });
 });

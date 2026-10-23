@@ -10,6 +10,7 @@
     "test": "jest --runInBand"
   },
   "dependencies": {
+    "@company-platform/domain": "file:../../packages/domain",
     "@hookform/resolvers": "3.10.0",
     "firebase": "11.5.0",
     "next": "15.5.27",

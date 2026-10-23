@@ -1,0 +1,15 @@
+meta {
+  name: Latest company (collaborator)
+  type: http
+  seq: 9
+}
+
+get {
+  url: {{baseUrl}}/collaborator/company/latest
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{collaboratorFirebaseIdToken}}
+}

@@ -1,6 +1,9 @@
-import { AppRole } from '../common/roles.decorator';
+import { UserRole } from '@prisma/client';
 
 export interface AuthenticatedUser {
+  id: string;
   uid: string;
-  role: AppRole;
+  email: string;
+  role: UserRole;
+  isActive: boolean;
 }

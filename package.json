@@ -2,6 +2,7 @@
   "name": "company-collaboration-platform",
   "private": true,
   "workspaces": [
+    "packages/domain",
     "apps/api",
     "apps/web"
   ],

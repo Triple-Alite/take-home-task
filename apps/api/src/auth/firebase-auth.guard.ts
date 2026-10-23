@@ -12,8 +12,8 @@ export class FirebaseAuthGuard implements CanActivate {
     const authorization = request.headers.authorization;
     const [scheme, token, extra] = authorization?.split(' ') ?? [];
     if (scheme !== 'Bearer' || !token || extra) throw new UnauthorizedException('A bearer ID token is required');
-    const identity = await this.firebaseAuth.verifyIdToken(token);
-    request.user = { uid: identity.uid, role: this.firebaseAuth.roleFor(identity.uid) };
+
+    request.user = await this.firebaseAuth.verifyIdToken(token);
     return true;
   }
 }

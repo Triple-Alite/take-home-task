@@ -11,5 +11,7 @@ import { FirebaseAuthGuard } from './firebase-auth.guard';
 export class AuthController {
   @Get('me')
   @ApiOperation({ summary: 'Return the authenticated user role' })
-  me(@CurrentUser() user: AuthenticatedUser): AuthenticatedUser { return user; }
+  me(@CurrentUser() user: AuthenticatedUser): Pick<AuthenticatedUser, 'id' | 'email' | 'role' | 'isActive'> {
+    return { id: user.id, email: user.email, role: user.role, isActive: user.isActive };
+  }
 }
